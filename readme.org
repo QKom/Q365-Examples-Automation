@@ -1,7 +1,89 @@
-#+Time-stamp: <2021-07-22T12:33:46>
+#+Time-stamp: <2021-07-22T17:13:34>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
 #+options: num:nil author:nil ^:t
 #+property: header-args :noweb yes :mkdirp yes
 #+language: en
+
+* Prerequisites
+1. [[https://git-scm.com/downloads][git]]
+2. [[https://developer.salesforce.com/tools/sfdxcli][Salesforce CLI (sfdx)]]
+3. Microsoft Account
+4. Microsoft Sharepoint
+
+* Setting up
+It is recommended to write a readme for your project which documents
+the values used to configure your Q!365 instance.
+
+Navigate to your workspace folder via CLI, and execute:
+#+begin_src shell
+sfdx force:project:create -p pkg -n $project
+#+end_src
+where =$project= is the name of the directory for your project
+files.
+
+Enter the directory:
+#+begin_src shell
+cd $projectname
+#+end_src
+
+Initialize a git repository and connect it to your git forge,
+e.g. github:
+ #+begin_src shell
+git init
+git remote add origin git@github.com:$organization/$project.git
+ #+end_src
+
+Connect the sfdx Project with your Salesforce Org:
+#+begin_src shell
+sfdx auth:web:login -a $project -r https://test.salesforce.com
+sfdx force:config:set defaultusername=$project
+#+end_src
+
+With all of the previous steps, opening the Salesforce Org via sfdx
+should work:
+#+begin_src shell
+sfdx force:org:open
+#+end_src
+
+optionally only generate the login link, for manual copypasting:
+#+begin_src shell
+sfdx force:org:open -r
+#+end_src
+
+* Workflow
+
+** [[https://developer.microsoft.com/en-us/graph/graph-explorer][Microsoft Graph Explorer]]
+for executing HTTP requests
+
+#+begin_center
+Make sure to Sign In to your Account, and set permission
+Sites.ReadWrite.All via ... > Select permissions
+#+end_center
+
+Run query:
+#+begin_quote
+GET [[https://graph.microsoft.com/v1.0/sites?search=][https://graph.microsoft.com/v1.0/sites?search=]]
+#+end_quote
+
+The Response preview-window should contain the id of the sharepoint
+site in the form of:
+ #+begin_src
+company.sharepoint.com,some-alphanumerics-with-dashes,some-alphanumerics-with-dashes
+ #+end_src
+
+
+
+* Tips
+help for sfdx commands can be found via
+#+begin_src shell
+sfdx help COMMAND
+#+end_src
+
+useful sfdx commands:
+#+begin_src shell
+sfdx auth:list
+sfdx config:list
+sfdx force:org:list
+#+end_src
