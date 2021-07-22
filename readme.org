@@ -1,0 +1,7 @@
+#+Time-stamp: <2021-07-22T12:33:46>
+#+title: Automating Q!365 projects - A workflow example
+#+author: Leonie Bachem
+#+email: leonie.bachem@qkom.de
+#+options: num:nil author:nil ^:t
+#+property: header-args :noweb yes :mkdirp yes
+#+language: en
