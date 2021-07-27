@@ -1,4 +1,4 @@
-#+Time-stamp: <2021-07-22T17:13:34>
+#+Time-stamp: <2021-07-27T18:03:05>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
@@ -6,15 +6,27 @@
 #+property: header-args :noweb yes :mkdirp yes
 #+language: en
 
+#+latex_class: article
+#+latex_class_options:
+#+latex_header:
+#+latex_header_extra: \setlength{\parindent}{0}
+#+description:
+#+keywords:
+#+subtitle:
+#+latex_compiler: pdflatex
+#+date: \today
+
+It is recommended to write a project readme documenting the values
+used to configure your Q!365 instance.
+
 * Prerequisites
+
 1. [[https://git-scm.com/downloads][git]]
 2. [[https://developer.salesforce.com/tools/sfdxcli][Salesforce CLI (sfdx)]]
 3. Microsoft Account
 4. Microsoft Sharepoint
 
 * Setting up
-It is recommended to write a readme for your project which documents
-the values used to configure your Q!365 instance.
 
 Navigate to your workspace folder via CLI, and execute:
 #+begin_src shell
@@ -41,13 +53,12 @@ sfdx auth:web:login -a $project -r https://test.salesforce.com
 sfdx force:config:set defaultusername=$project
 #+end_src
 
-With all of the previous steps, opening the Salesforce Org via sfdx
-should work:
+From now on, opening the Salesforce Org via sfdx should work:
 #+begin_src shell
 sfdx force:org:open
 #+end_src
 
-optionally only generate the login link, for manual copypasting:
+Optionally only generate the login link, for manual copy-pasting:
 #+begin_src shell
 sfdx force:org:open -r
 #+end_src
@@ -55,6 +66,7 @@ sfdx force:org:open -r
 * Workflow
 
 ** [[https://developer.microsoft.com/en-us/graph/graph-explorer][Microsoft Graph Explorer]]
+
 for executing HTTP requests
 
 #+begin_center
@@ -67,23 +79,113 @@ Run query:
 GET [[https://graph.microsoft.com/v1.0/sites?search=][https://graph.microsoft.com/v1.0/sites?search=]]
 #+end_quote
 
-The Response preview-window should contain the id of the sharepoint
-site in the form of:
+The Response preview-window should contain the Sharepoint Site Id in
+the form of:
  #+begin_src
 company.sharepoint.com,some-alphanumerics-with-dashes,some-alphanumerics-with-dashes
  #+end_src
 
+Using the Site Id, acquire the Drive Ids with:
+#+begin_quote
+GET [[https://graph.microsoft.com/v1.0/sites/SITEID/drives][https://graph.microsoft.com/v1.0/sites/{site-id}/drives]]
+#+end_quote
 
+Using the Drive Ids, acquire the Item's Ids:
+#+begin_quote
+GET [[https://graph.microsoft.com/v1.0/drives/DRIVEID/root/children][https://graph.microsoft.com/v1.0/drives/{drive-id}/root/children]]
+#+end_quote
+
+** [[https://YOURSALESFORCEURL.lightning.force.com/lightning/setup/CustomSettings/home][Salesforce]]
+
+Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
+new Custom Settings object, name it e.g. =Q365_Project_Settings=
+
+On this Custom Settings object, create new Custom Labels as
+needed. They should be of type Text and have a length of 255.
+#+begin_example
+Template Project
+Destination Site Projects
+etc
+#+end_example
+
+Create a Custom Label for the Q!365 Service Account as well:
+#+begin_example
+Q365Service
+#+end_example
+
+The Service Account can be configured under =Setup= > =Home= > =Named Credentials=
+
+** SFDX
+
+Download the Custom Object definition:
+#+begin_src shell
+sfdx force:source:retrieve -m 'CustomObject: Q365_Project_Settings__c'
+#+end_src
+
+Create Apex classes for configuration and directory creation:
+#+begin_src shell
+sfdx force:apex:class:create -d pkg/main/default/classes -n SharepointConfig
+sfdx force:apex:class:create -d pkg/main/default/classes -n SharepointUtilities
+sfdx force:apex:class:create -d pkg/main/default/classes -n SharepointFoldersCtrl
+#+end_src
+
+Create Apex Triggers for the Sharepoint Folders to be used as template
+structures, e.g.
+#+begin_src shell
+sfdx force:apex:trigger:create -d pkg/main/default/triggers -n SharepointFoldersProject
+# etc
+#+end_src
+
+Create a =package.xml= file detailing your changes:
+#+begin_src xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+	<members>SharepointConfig</members>
+	<members>SharepointFoldersCtrl</members>
+	<members>SharepointUtilities</members>
+	<name>ApexClass</name>
+    </types>
+    <types>
+	<members>SharepointFoldersProject</members>
+	<name>ApexTrigger</name>
+    </types>
+    <types>
+	<members>Q365_Project_Settings__c</members>
+	<name>CustomObject</name>
+    </types>
+    <version>52.0</version>
+</Package>
+#+end_src
+
+Deploy your changes to the org with:
+#+begin_src shell
+sfdx force:source:deploy -x package.xml
+#+end_src
+
+If deployment fails, it does so detailing the errors
+responsible.  Iterate fixing them until deployment succeeds.
+
+#+begin_latex
+\pagebreak
+#+end_latex
 
 * Tips
+
 help for sfdx commands can be found via
 #+begin_src shell
 sfdx help COMMAND
 #+end_src
 
-useful sfdx commands:
+** useful sfdx commands
 #+begin_src shell
 sfdx auth:list
+#+end_src
+
+#+begin_src shell
 sfdx config:list
+#+end_src
+
+#+begin_src shell
 sfdx force:org:list
 #+end_src
