@@ -13,6 +13,13 @@
 
 !SharepointFoldersAccounts.trigger
 
+!Q365_Project_Settings__c.object-meta.xml
+!Template_Drive__c.field-meta.xml
+!Template_Accounts__c.field-meta.xml
+!Destination_Root__c.field-meta.xml
+!Destination_Drive__c.field-meta.xml
+!Destination_Accounts__c.field-meta.xml
+
 !package.xml
 
 # ...even if they are in subdirectories
