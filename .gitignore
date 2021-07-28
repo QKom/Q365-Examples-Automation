@@ -1,0 +1,13 @@
+# Ignore everything
+
+*
+
+# But not these files...
+
+!.gitignore
+!readme.org
+!package.xml
+
+# ...even if they are in subdirectories
+
+!*/
