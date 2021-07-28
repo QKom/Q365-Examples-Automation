@@ -1,32 +1,28 @@
-#+Time-stamp: <2021-07-27T18:03:05>
+#+Time-stamp: <2021-07-28T14:35:19>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
 #+options: num:nil author:nil ^:t
 #+property: header-args :noweb yes :mkdirp yes
 #+language: en
-
-#+latex_class: article
-#+latex_class_options:
-#+latex_header:
 #+latex_header_extra: \setlength{\parindent}{0}
-#+description:
-#+keywords:
-#+subtitle:
-#+latex_compiler: pdflatex
 #+date: \today
+
+This is an example showing how to automate folder creation via
+triggers on Account Object creation/update.
 
 It is recommended to write a project readme documenting the values
 used to configure your Q!365 instance.
 
 * Prerequisites
 
-1. [[https://git-scm.com/downloads][git]]
+1. Salesforce Account
 2. [[https://developer.salesforce.com/tools/sfdxcli][Salesforce CLI (sfdx)]]
-3. Microsoft Account
-4. Microsoft Sharepoint
+3. Microsoft Office 365 Tenant
 
-* Setting up
+* Setting Up
+
+** SFDX
 
 Navigate to your workspace folder via CLI, and execute:
 #+begin_src shell
@@ -37,11 +33,11 @@ files.
 
 Enter the directory:
 #+begin_src shell
-cd $projectname
+cd $project
 #+end_src
 
-Initialize a git repository and connect it to your git forge,
-e.g. github:
+It is recommended to use git for version control.  Initialize a git
+repository and connect it to github with:
  #+begin_src shell
 git init
 git remote add origin git@github.com:$organization/$project.git
@@ -63,7 +59,7 @@ Optionally only generate the login link, for manual copy-pasting:
 sfdx force:org:open -r
 #+end_src
 
-* Workflow
+* Automation Workflow
 
 ** [[https://developer.microsoft.com/en-us/graph/graph-explorer][Microsoft Graph Explorer]]
 
@@ -71,7 +67,7 @@ for executing HTTP requests
 
 #+begin_center
 Make sure to Sign In to your Account, and set permission
-Sites.ReadWrite.All via ... > Select permissions
+=Sites.ReadWrite.All= via =...= > =Select permissions=
 #+end_center
 
 Run query:
@@ -85,35 +81,41 @@ the form of:
 company.sharepoint.com,some-alphanumerics-with-dashes,some-alphanumerics-with-dashes
  #+end_src
 
-Using the Site Id, acquire the Drive Ids with:
+Using the Sharepoint Site Id, acquire the Drive Id with:
 #+begin_quote
 GET [[https://graph.microsoft.com/v1.0/sites/SITEID/drives][https://graph.microsoft.com/v1.0/sites/{site-id}/drives]]
 #+end_quote
 
-Using the Drive Ids, acquire the Item's Ids:
+Using the Drive Id, acquire the Accounts Id:
 #+begin_quote
 GET [[https://graph.microsoft.com/v1.0/drives/DRIVEID/root/children][https://graph.microsoft.com/v1.0/drives/{drive-id}/root/children]]
 #+end_quote
 
 ** [[https://YOURSALESFORCEURL.lightning.force.com/lightning/setup/CustomSettings/home][Salesforce]]
 
-Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
-new Custom Settings object, name it e.g. =Q365_Project_Settings=
-
-On this Custom Settings object, create new Custom Labels as
-needed. They should be of type Text and have a length of 255.
-#+begin_example
-Template Project
-Destination Site Projects
-etc
-#+end_example
-
+#+begin_comment
 Create a Custom Label for the Q!365 Service Account as well:
 #+begin_example
 Q365Service
 #+end_example
 
 The Service Account can be configured under =Setup= > =Home= > =Named Credentials=
+#+end_comment
+
+Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
+new Custom Settings object, name it =Q365_Project_Settings=.
+
+On this Custom Settings Object, create new Custom Fields of type Text
+with a length of 255 and the following Field Labels:
+1. Template Drive
+2. Template Accounts
+3. Destination Root
+4. Destination Drive
+5. Destination Accounts
+
+Populate the Field Labels via the =Manage= button on the Object with the
+appropriate Ids from GraphExplorer.  Destination Root can be set to
+the string 'root' for simple use cases.
 
 ** SFDX
 
@@ -130,41 +132,24 @@ sfdx force:apex:class:create -d pkg/main/default/classes -n SharepointFoldersCtr
 #+end_src
 
 Create Apex Triggers for the Sharepoint Folders to be used as template
-structures, e.g.
+structures:
 #+begin_src shell
-sfdx force:apex:trigger:create -d pkg/main/default/triggers -n SharepointFoldersProject
-# etc
+sfdx force:apex:trigger:create -d pkg/main/default/triggers -n SharepointFoldersAccounts
 #+end_src
 
-Create a =package.xml= file detailing your changes:
-#+begin_src xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-	<members>SharepointConfig</members>
-	<members>SharepointFoldersCtrl</members>
-	<members>SharepointUtilities</members>
-	<name>ApexClass</name>
-    </types>
-    <types>
-	<members>SharepointFoldersProject</members>
-	<name>ApexTrigger</name>
-    </types>
-    <types>
-	<members>Q365_Project_Settings__c</members>
-	<name>CustomObject</name>
-    </types>
-    <version>52.0</version>
-</Package>
-#+end_src
+See the respective files in this repository for code examples.
+
+Create a =$project/package.xml= file detailing your changes.
 
 Deploy your changes to the org with:
 #+begin_src shell
 sfdx force:source:deploy -x package.xml
 #+end_src
 
-If deployment fails, it does so detailing the errors
-responsible.  Iterate fixing them until deployment succeeds.
+If deployment fails, it does so detailing the errors responsible.
+Iterate fixing them until deployment succeeds.
+
+If using git for version control, commit your changes.
 
 #+begin_latex
 \pagebreak
@@ -172,12 +157,16 @@ responsible.  Iterate fixing them until deployment succeeds.
 
 * Tips
 
-help for sfdx commands can be found via
+List all SFDX commands:
+#+begin_src shell
+sfdx commands
+#+end_src
+
+Show help for SFDX command COMMAND:
 #+begin_src shell
 sfdx help COMMAND
 #+end_src
 
-** useful sfdx commands
 #+begin_src shell
 sfdx auth:list
 #+end_src
