@@ -6,6 +6,13 @@
 
 !.gitignore
 !readme.org
+
+!SharepointConfig.cls
+!SharepointUtilities.cls
+!SharepointFoldersCtrl.cls
+
+!SharepointFoldersAccounts.trigger
+
 !package.xml
 
 # ...even if they are in subdirectories
