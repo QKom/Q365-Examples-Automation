@@ -1,4 +1,4 @@
-#+Time-stamp: <2021-07-28T14:35:19>
+#+Time-stamp: <2021-07-29T14:14:01>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
@@ -16,11 +16,15 @@ used to configure your Q!365 instance.
 
 * Prerequisites
 
-1. Salesforce Account
-2. [[https://developer.salesforce.com/tools/sfdxcli][Salesforce CLI (sfdx)]]
-3. Microsoft Office 365 Tenant
+1. Microsoft Azure
+2. Microsoft 365
+3. Salesforce
+4. [[https://developer.salesforce.com/tools/sfdxcli][Salesforce CLI (sfdx)]]
 
 * Setting Up
+
+Install Q!365 in your Salesforce Org and set it up according to the
+Q!365 Admin Documentation.
 
 ** SFDX
 
@@ -93,14 +97,7 @@ GET [[https://graph.microsoft.com/v1.0/drives/DRIVEID/root/children][https://gra
 
 ** [[https://YOURSALESFORCEURL.lightning.force.com/lightning/setup/CustomSettings/home][Salesforce]]
 
-#+begin_comment
-Create a Custom Label for the Q!365 Service Account as well:
-#+begin_example
-Q365Service
-#+end_example
-
 The Service Account can be configured under =Setup= > =Home= > =Named Credentials=
-#+end_comment
 
 Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
 new Custom Settings object, name it =Q365_Project_Settings=.
@@ -112,6 +109,11 @@ with a length of 255 and the following Field Labels:
 3. Destination Root
 4. Destination Drive
 5. Destination Accounts
+
+#+begin_comment
+Also create a Custom Field for the Q!365 Service Account, if needed:
+=Q365Service=
+#+end_comment
 
 Populate the Field Labels via the =Manage= button on the Object with the
 appropriate Ids from GraphExplorer.  Destination Root can be set to
