@@ -5,7 +5,10 @@
 # But not these files...
 
 !.gitignore
+*automation-workflow-example/.gitignore
+
 !readme.org
+!readme.pdf
 
 !SharepointConfig.cls
 !SharepointUtilities.cls
