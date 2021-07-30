@@ -1,12 +1,15 @@
-#+Time-stamp: <2021-07-29T14:14:01>
+#+Time-stamp: <2021-07-30T16:07:22>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
 #+options: num:nil author:nil ^:t
 #+property: header-args :noweb yes :mkdirp yes
 #+language: en
+
+#+latex_class_options: [a4paper]
 #+latex_header_extra: \setlength{\parindent}{0}
-#+date: \today
+#+latex_header_extra: \setlength{\parskip}{4mm plus 2mm minus 1mm}
+#+latex_header_extra: \usepackage[top=1.5cm, bottom=2cm, left=1cm, right=3cm]{geometry}
 
 This is an example showing how to automate folder creation via
 triggers on Account Object creation/update.
@@ -24,7 +27,7 @@ used to configure your Q!365 instance.
 * Setting Up
 
 Install Q!365 in your Salesforce Org and set it up according to the
-Q!365 Admin Documentation.
+[[https://partners.salesforce.com/servlet/servlet.FileDownload?file=00P4V00000TUwDFUA1][Q!365 Admin Documentation]].
 
 ** SFDX
 
@@ -121,6 +124,8 @@ the string 'root' for simple use cases.
 
 ** SFDX
 
+See the respective files in [[https://github.com/QKom/Q365-Examples-Automation][this repository]] for code examples.
+
 Download the Custom Object definition:
 #+begin_src shell
 sfdx force:source:retrieve -m 'CustomObject: Q365_Project_Settings__c'
@@ -138,8 +143,6 @@ structures:
 #+begin_src shell
 sfdx force:apex:trigger:create -d pkg/main/default/triggers -n SharepointFoldersAccounts
 #+end_src
-
-See the respective files in this repository for code examples.
 
 Create a =$project/package.xml= file detailing your changes.
 
