@@ -3,8 +3,9 @@ public with sharing class SharepointFoldersCtrl {
 
     @future(callout=true)
     public static void createAccountFolders(Id accountId, string title) {
+	// Reference environment variables from config file
 	String destination_drive = SharepointConfig.DESTINATION_DRIVE;
-	String destination_item = SharepointConfig.DESTINATION_ACCOUNTS;
+	String destination_item = SharepointConfig.DESTINATION_ROOT;
 	String template_drive = SharepointConfig.TEMPLATE_DRIVE;
 	String template_accounts = SharepointConfig.TEMPLATE_ACCOUNTS;
 
@@ -16,6 +17,7 @@ public with sharing class SharepointFoldersCtrl {
 	Http http = new Http();
 	HttpRequest req_job = SharepointUtilities.getJobStatusRequest(job_url);
 
+	// Retrieve root folder metadata
 	String root_id = '';
 	Integer k = 0;
 	while(true){

@@ -1,4 +1,4 @@
-#+Time-stamp: <2021-07-30T16:07:22>
+#+Time-stamp: <2021-08-02T12:53:08>
 #+title: Automating Q!365 projects - A workflow example
 #+author: Leonie Bachem
 #+email: leonie.bachem@qkom.de
@@ -11,8 +11,9 @@
 #+latex_header_extra: \setlength{\parskip}{4mm plus 2mm minus 1mm}
 #+latex_header_extra: \usepackage[top=1.5cm, bottom=2cm, left=1cm, right=3cm]{geometry}
 
-This is an example showing how to automate folder creation via
-triggers on Account Object creation/update.
+This is a minimal working example showing how to automate folder
+creation via triggers on Account Object creation/update. It does not
+include technical service account setup.
 
 It is recommended to write a project readme documenting the values
 used to configure your Q!365 instance.
@@ -68,6 +69,34 @@ sfdx force:org:open -r
 
 * Automation Workflow
 
+** [[https://YOURSALESFORCEURL.lightning.force.com/lightning/setup/CustomSettings/home][Salesforce]]
+
+The Service Account can be configured under =Setup= > =Home= > =Named Credentials=
+
+Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
+new Custom Settings object, name it =Q365_Project_Settings=.
+
+On this Custom Settings Object, create new Custom Fields of type Text
+with a length of 255 and the following Field Labels:
+1. Template Drive -> Document Library for maintaining object templates
+2. Template Accounts -> Folder Id of the object template
+3. Destination Drive -> Destination document library
+4. Destination Root -> Destination parent folder (if none: String 'root')
+
+If there's no parent folder associated to the account automation, set
+the Destination Root field to the string 'root'. Otherwise, set it to
+the corresponding folder Id as shown here.
+
+#+begin_comment
+Also create a Custom Field for the Q!365 Service Account, if needed:
+=Q365Service=
+#+end_comment
+
+Populate the Field Labels via the =Manage= button on the Object with the
+appropriate Ids from GraphExplorer, which will be retrieved in the
+next part.  Destination Root can be set to the string 'root' if there
+is no Sharepoint parent folder.
+
 ** [[https://developer.microsoft.com/en-us/graph/graph-explorer][Microsoft Graph Explorer]]
 
 for executing HTTP requests
@@ -88,39 +117,16 @@ the form of:
 company.sharepoint.com,some-alphanumerics-with-dashes,some-alphanumerics-with-dashes
  #+end_src
 
-Using the Sharepoint Site Id, acquire the Drive Id with:
+Using the Sharepoint Site Id, acquire the Drive Ids with:
 #+begin_quote
 GET [[https://graph.microsoft.com/v1.0/sites/SITEID/drives][https://graph.microsoft.com/v1.0/sites/{site-id}/drives]]
 #+end_quote
 
-Using the Drive Id, acquire the Accounts Id:
+Using the Drive Ids, acquire the Templates Id and Destination Root,
+if applicable:
 #+begin_quote
 GET [[https://graph.microsoft.com/v1.0/drives/DRIVEID/root/children][https://graph.microsoft.com/v1.0/drives/{drive-id}/root/children]]
 #+end_quote
-
-** [[https://YOURSALESFORCEURL.lightning.force.com/lightning/setup/CustomSettings/home][Salesforce]]
-
-The Service Account can be configured under =Setup= > =Home= > =Named Credentials=
-
-Navigate to =Setup= > =Home= > =Custom Settings= > =New= to create a
-new Custom Settings object, name it =Q365_Project_Settings=.
-
-On this Custom Settings Object, create new Custom Fields of type Text
-with a length of 255 and the following Field Labels:
-1. Template Drive
-2. Template Accounts
-3. Destination Root
-4. Destination Drive
-5. Destination Accounts
-
-#+begin_comment
-Also create a Custom Field for the Q!365 Service Account, if needed:
-=Q365Service=
-#+end_comment
-
-Populate the Field Labels via the =Manage= button on the Object with the
-appropriate Ids from GraphExplorer.  Destination Root can be set to
-the string 'root' for simple use cases.
 
 ** SFDX
 
@@ -148,7 +154,7 @@ Create a =$project/package.xml= file detailing your changes.
 
 Deploy your changes to the org with:
 #+begin_src shell
-sfdx force:source:deploy -x package.xml
+sfdx force:source:deploy -x package.xml [-u $targetorg]
 #+end_src
 
 If deployment fails, it does so detailing the errors responsible.

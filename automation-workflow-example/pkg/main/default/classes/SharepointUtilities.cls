@@ -44,6 +44,7 @@ public class SharepointUtilities {
         return req;
     }
 
+    // Retrieves job url from location header in response
     public static String getIdFromJobStatusResponse(HttpResponse res){
         if(res.getStatusCode() != 200){
             throw new EException('Error checking operation status. Exiting');
